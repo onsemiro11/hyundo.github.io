@@ -1,8 +1,3 @@
----
-title: "Lab-02 simple Liner Regression LAB"
-date: 2019-04-20 18:14:28
-categories: machine Learning
----
 
 simple Liner Regression, 단순선형회귀분석을 텐서플로우로 어떻게 구현하는지에 대하여 공부해봤습니다.
 
