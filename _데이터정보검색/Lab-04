@@ -1,0 +1,66 @@
+이번에는 Multi-variable linear regression 복합선형회기분석을 tensorflow로 실행시켜볼것입니다.
+
+import tensorflow as tf #tensorflow를 데려와 tf로 정의합니다.
+tf.set_random_seed(777)  # for reproducibility #777개의 수를 임의로 정해 셋을 만듭니다.
+
+
+filename_queue = tf.train.string_input_producer( 
+    ['data-01-test-score.csv'], shuffle=False, name='filename_queue')
+#'data-01-test-score.csv'파일을 불려와 'filename_queue'로 이름을 정의 내립니다. 
+
+reader = tf.TextLineReader() # 텍스트를 한줄씩 읽어 reader로 정의합니다.
+key, value = reader.read(filename_queue) #filename_queue을 읽는 함수 , 순차적으로 데이터들이 리턴하여 key, value로 지정한다.
+
+record_defaults = [[0.], [0.], [0.], [0.]]          #데이터를 실수로 정의합니다.
+xy = tf.decode_csv(value, record_defaults=record_defaults)
+#데이터를 해석한 후 xy에 저장하여 리턴합니다.
+
+train_x_batch, train_y_batch = \
+    tf.train.batch([xy[0:-1], xy[-1:]], batch_size=10)
+                      #batch_size를 10으로 두었으므로 0과-1사이를 10으로 등분하여 각각 train_x_batch와 train_y_batch로 정의합니다. 
+
+X = tf.placeholder(tf.float32, shape=[None, 3])
+Y = tf.placeholder(tf.float32, shape=[None, 1])
+                      #데이터를 shape를 활용하여 [n,3]과 [n,1]로 정리하여 만들어 놓습니다.
+
+W = tf.Variable(tf.random_normal([3, 1]), name='weight')
+b = tf.Variable(tf.random_normal([1]), name='bias')
+#w와 b를 weight와 bias로 각각 변수로 정의내립니다.
+
+hypothesis = tf.matmul(X, W) + b
+#가설의 공식을 토대로 정의합니다.
+
+cost = tf.reduce_mean(tf.square(hypothesis - Y))    #감소되는 cost함수를 공식에 맞게 정의합니다.
+
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=1e-5)
+train = optimizer.minimize(cost)
+#그 cost함수를 활용하여 최소화시켜 그 데이터의 정확도를 확인합니다.
+
+sess = tf.Session()             #새로운 세션을 시작하고 그 이름을 sess로 정의합니다.
+sess.run(tf.global_variables_initializer())
+                                #새로운 세션을 만들어 변수를 초기화합니다.
+                                
+coord = tf.train.Coordinator()        #threads를 컨트롤 할 수 있게 이 함수를 선언합니다.
+threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+                                      #각각의 threads들을 위 coord에 넣어둡니다.
+
+for step in range(2001):
+    x_batch, y_batch = sess.run([train_x_batch, train_y_batch])
+    cost_val, hy_val, _ = sess.run(
+        [cost, hypothesis, train], feed_dict={X: x_batch, Y: y_batch})
+    if step % 10 == 0:
+        print(step, "Cost: ", cost_val, "\nPrediction:\n", hy_val)
+                              #x batch와 y batch를 지정하고 함수에 대입하여 10번에 한번씩 결과값을 출력하도록 조절합니다.
+
+coord.request_stop()
+coord.join(threads)
+#요구 값을 멈추고 다시 trheads를 넣습니다.
+
+print("Your score will be ",
+      sess.run(hypothesis, feed_dict={X: [[100, 70, 101]]}))
+#결과값을 출력합니다.
+
+print("Other scores will be ",
+      sess.run(hypothesis, feed_dict={X: [[60, 70, 110], [90, 100, 80]]}))
+#결과값을 출력합니다.
+
