@@ -1,7 +1,63 @@
 ---
-title: "데이터정보검색_중간고사과제"
-date: 2019-04-20 18:14:28 -0400
-categories: 
+title: "Lab-02 simple Liner Regression LAB"
+date: 2019-04-20 18:14:28
+categories: machine Learning
 ---
 
-201804234_산업데이터사이언스학부_이현도
+simple Liner Regression, 단순선형회귀분석을 텐서플로우로 어떻게 구현하는지에 대하여 공부해봤습니다.
+
+Hypothesis 가설(우리의 가설,예측) : H(x) = Wx +b
+cost(실제값) : 에러제곱의 평균값 cost(W,b) = 1/m시그마(H(xi-yi)^2
+
+우리가 진행하려는 머신러닝은 cost가 작을 때의 W와 b를 찾는 과정이다.
+python에서 tensorflow를 불러와 러닝을 시켜보겠습니다.
+
+import tensorflow as tf
+#tensorflow를 불러와 tf로 정의하였습니다.
+tf.enable_eager_execution()
+#execution을 활성화시켜 즉시 실행하도록 한다.
+x_data=[1,2,3,4,5]
+y_data=[1,2,3,4,5]
+#간단한 데이터를 입력시킨다. x와 y의 값이 같으므로 러닝의 결과는 W는 1로 b는 0으로 가까워져야함이 나와야한다.
+w=tf.Variable(2.9)
+b=tf.Variable(0.5)
+#초기의 w와 b의 값을 임의로 지정합니다. 대체로 렌덤값을 지정하는데 지금은 임의의 값을 선택하여 넣어보았습니다.
+
+#Gradient descent는 기울기를 하강시키며 러닝하는 것이다. cost를 최소화시키며 w와b를 찾는 알고리즘이다. tensorflow에서는 GradientTape로 지정된다.
+
+learning_rate=0.01
+for i in range(100+1):        #한거름한거름을 100번 수행하고 있다.
+    with tf.GradientTape() as tape:       #with구문안에 있는 블럭 안에서 변화되는 변수들(W,b)을 tape에 기록한다.
+        hypothesis = w * x_data + b
+        cost = tf.reduce_mean(tf.square(hypothesis - y_data))
+    w_grad, b_grad = tape.gradient(cost,[w,b])    #tape에 기록된 변수들을 grandient함수를 활용하여 cost함수에 대해서 w,b에 대한 미분값을 w_grad, b_grad로 지정된다.
+    w.assign_sub(learning_rate * w_grad)    #w를 업데이트 시켜준다.assign_sub는 파이썬에서 -= 연산자와 같은 기능을 한다.
+                                            #learning_rate는 w_grad의 값을 얼만큼 반영할 것인가를 결정한다. learning_rate가 크면 많이 반영되고 작으면 조금씩의 변화가 반영될것이다.
+    b.assign_sub(learning_rate * b_grad)    #w의 과정과 같다.
+    if i % 10 == 0:
+        print("{:5}|{:10.4f}|{:10.4}|{:10.6f}".format(i, w.numpy(), b.numpy(),cost))
+          #w와 b값을 중간중간 출력할 수 있도록 10번의 간격을 두어 print시킨다.
+          
+<결과값>
+ 
+ WARNING:tensorflow:From C:\ProgramData\Anaconda3\lib\site-packages\tensorflow\python\ops\resource_variable_ops.py:642: colocate_with (from tensorflow.python.framework.ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Colocations handled automatically by placer.
+    0|    2.4520|     0.376| 45.660004
+   10|    1.1036|  0.003398|  0.206336
+   20|    1.0128|  -0.02091|  0.001026
+   30|    1.0065|  -0.02184|  0.000093
+   40|    1.0059|  -0.02123|  0.000083
+   50|    1.0057|  -0.02053|  0.000077
+   60|    1.0055|  -0.01984|  0.000072
+   70|    1.0053|  -0.01918|  0.000067
+   80|    1.0051|  -0.01854|  0.000063
+   90|    1.0050|  -0.01793|  0.000059
+  100|    1.0048|  -0.01733|  0.000055
+  # i       w        b          cost
+  #i가 10번의 간격으로 출력이 되며 변화됨을 볼 수 있다.
+  #w는 1.0으로 가까워 지고 있고, b는 0으로 가까워지고 있음을 확인할 수 있다.(cost함수가 최소화되면서.)
+  #cost값이 작아지는 것을 보아 우리의 값이 정확한 값을 도출해내고 있음을 알 수 있다.
+  
+  이렇게 해서 simple Liner Rregression을 실습해보고 잘 진행되는 지를 학습해보았습니다.
+  
