@@ -1,0 +1,95 @@
+이번에는 선형회귀의 분류에 대해서 tensorflow로 실행시켜보겠습니다.
+
+classifier은 분류라는 개념으로 case(1,0)으로 데이터를 나누어 분석하는 기술이다.
+
+tf.set_random_seed(777
+x_data = [[1,2],[2,3],[3,1],[4,3],[5,3],[6,2]]  #x의 데이터를 [_,_]형태로 지정합니다.
+y_data = [[0],[0],[0],[1],[1],[1]]              #classifier에서는 범위로 y가 0,1나눕니다.
+x=tf.placeholder(tf.float32, shape=[None,2])    
+y=tf.placeholder(tf.float32,shape=[None,1])     #placeholder를 통해서 데이터를 shape형태로 만든후 저장을 합니다.
+w=tf.Variable(tf.random_normal([2,1]),name='weight')      #w에서 x의 값2개와 y의 값1개가 추출되기 때문에 random_normal에 [2,1]로 weight을 정하였습니다.
+b=tf.Variable(tf.random_normal([1]),name='bias')          #b에서는 y의 값이 1개이므로 [1]로 정하여 bias을 variable을 활용하여 정하였습니다.
+hypothesis = tf.sigmoid(tf.matmul(x,w)+b)                 #hypothesis의 공식을 그대로 정의합니다.
+cost = -tf.reduce_mean(y * tf.log(hypothesis)+(1-y)*tf.log(1-hypothesis))     #hypothesis를 활용하여 cost함수를 정의합니다.
+train=tf.train.GradientDescentOptimizer(learning_rate=0.01).minimize(cost)    #cost를 최소화할 때 사용하는 그래프를 형성합니다.
+predicted = tf.cast(hypothesis > 0.5,dtype=tf.float32)                        #hypotesis의 값을 0.5기준으로 T,F로 나뉩니다. dtype를 float으로 두었으므로
+                                                                               T가 1.0 F가 0.0으로 구분될 것입니다.
+accuracy = tf.reduce_mean(tf.cast(tf.equal(predicted,y),dtype=tf.float32))
+      #그 값들의 정확성을 알기 위해 y값끼리 같은지를 확인하고 같으면 T다르면 F로 두어 1,0으로 정의한 후 평균을 내 정확도를 측정합니다.
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())     #세션을 만든후 variable을 초기화시킵니다.
+    for step in range(10001):
+        cost_val, _ = sess.run([cost, train], feed_dict =  {x:x_data,y:y_data})
+        if step %200 == 0:
+            print(step,cost_val)
+    #x_data와 y_data를 던져주고 train과 cost함수에 실행시키고 200번에 한번씩 출력시킵니다.
+    h,c,a,=sess.run([hypothesis,predicted,accuracy],feed_dict={x:x_data,y : y_data})
+    print("\mHypothesis : ", h,"\nCorrect(y) : ",c,"\nAccuracy : ",a)
+    #hypotesis와 predicted와 acuracy의 값을 정하고 출력합니다.
+    
+<결과값> - 결과 값을 보시면 cost함수의 값이 최소화되어가고 있음을 확인할 수 있고 그 뜻은 우리가 분석한 값이 정확함을 의미합니다.
+          그리고 마지막에Correct와 Accuracy의 값을 수치로 확인하여 정확도를 객괒적으로 판단가능합니다.
+0 0.72754294
+200 0.65532446
+400 0.61215
+600 0.5809951
+800 0.55560565
+1000 0.5333769
+1200 0.51312494
+1400 0.49427378
+1600 0.4765263
+1800 0.45971945
+2000 0.44375718
+2200 0.42857692
+2400 0.4141332
+2600 0.40038887
+2800 0.38731122
+3000 0.3748691
+3200 0.36303282
+3400 0.3517731
+3600 0.34106144
+3800 0.3308698
+4000 0.32117102
+4200 0.311939
+4400 0.30314794
+4600 0.29477385
+4800 0.2867934
+5000 0.27918455
+5200 0.2719263
+5400 0.2649988
+5600 0.25838324
+5800 0.25206193
+6000 0.24601825
+6200 0.24023652
+6400 0.23470207
+6600 0.22940104
+6800 0.22432058
+7000 0.2194484
+7200 0.2147732
+7400 0.21028434
+7600 0.2059716
+7800 0.2018259
+8000 0.19783817
+8200 0.19400024
+8400 0.19030447
+8600 0.18674345
+8800 0.18331043
+9000 0.1799991
+9200 0.17680335
+9400 0.17371754
+9600 0.17073637
+9800 0.1678548
+10000 0.16506813
+\mHypothesis :  [[0.03755185]
+ [0.16716284]
+ [0.3359613 ]
+ [0.7675147 ]
+ [0.93050224]
+ [0.97717357]] 
+Correct(y) :  [[0.]
+ [0.]
+ [0.]
+ [1.]
+ [1.]
+ [1.]] 
+Accuracy :  1.0
